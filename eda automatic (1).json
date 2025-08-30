@@ -1,0 +1,659 @@
+{
+  "name": "eda automatic",
+  "nodes": [
+    {
+      "parameters": {
+        "jsCode": "// Loop over input items and add a new field called 'myNewField' to the JSON of each one\nfor (const item of $input.all()) {\n  item.json.myNewField = 1;\n}\n\nreturn $input.all();"
+      },
+      "id": "27dd6a65-a13b-4387-b554-fbe4a3b56804",
+      "name": "Null Cleaner",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [
+        -260,
+        -880
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json[\"_nulls_fixed\"] }}",
+              "value2": "true"
+            }
+          ]
+        }
+      },
+      "id": "1d629689-839e-495f-bdf0-c8a6465c62a7",
+      "name": "IF - Null Fixed?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        -40,
+        -880
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Loop over input items and add a new field called 'myNewField' to the JSON of each one\nfor (const item of $input.all()) {\n  item.json.myNewField = 1;\n}\n\nreturn $input.all();"
+      },
+      "id": "0e114981-fdc6-4032-a646-d1d88d3964de",
+      "name": "Duplicate Checker",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [
+        180,
+        -880
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json[\"_is_duplicate\"] }}",
+              "value2": "false"
+            }
+          ]
+        }
+      },
+      "id": "5b47e456-1434-4766-92ea-afafe2c01439",
+      "name": "IF - Not Duplicate?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        380,
+        -880
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "let fixedCols = [];\n\nfor (const key in $json) {\n  const val = $json[key];\n  \n  if (!isNaN(val) && typeof val === \"string\") {\n    $json[key] = parseFloat(val);\n    fixedCols.push(key);\n  }\n}\n\nreturn [\n  {\n    json: {\n      ...$json,\n      _types_fixed: fixedCols.length > 0,\n      _fix_log: `Fixed types in: ${fixedCols.join(\", \")}`\n    }\n  }\n];\n"
+      },
+      "id": "86ce90c2-9215-4b93-9020-6433f5f57f72",
+      "name": "Type Fixer",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [
+        600,
+        -880
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json[\"_types_fixed\"] }}",
+              "value2": "true"
+            }
+          ]
+        }
+      },
+      "id": "2d40428e-a724-4422-880c-8439f47384f4",
+      "name": "IF - Types Fixed?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        800,
+        -880
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const mean = 50000;\nconst stdDev = 15000;\nlet isOutlier = false;\n\nif ($json[\"Price\"]) {\n  const price = parseFloat($json[\"Price\"]);\n  const zScore = (price - mean) / stdDev;\n  isOutlier = Math.abs(zScore) > 3;\n}\n\nreturn [\n  {\n    json: {\n      ...$json,\n      _is_outlier: isOutlier\n    }\n  }\n];\n"
+      },
+      "id": "635294bc-e7a9-4bd7-b01c-ddd39c452259",
+      "name": "Outlier Checker",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [
+        1040,
+        -880
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json[\"_is_outlier\"] }}",
+              "value2": "false"
+            }
+          ]
+        }
+      },
+      "id": "ff857292-c64a-45bb-a373-196bbc49838d",
+      "name": "IF - Not Outlier?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        1260,
+        -880
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "return [\n  {\n    json: {\n      result: \"✅ Row cleaned and passed all checks.\",\n      data: $json\n    }\n  }\n];\n"
+      },
+      "id": "e4d830d4-2a54-4217-800d-7b79b682423a",
+      "name": "Final Step",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [
+        1500,
+        -880
+      ]
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -700,
+        -1160
+      ],
+      "id": "10c11c77-edba-4923-bcc1-40af05370061",
+      "name": "When clicking ‘Test workflow’"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1gXTlxumFPdgbcoJVSTMLqVMXcGPQQ113xfE4tx1nj_0",
+          "mode": "list",
+          "cachedResultName": "AI jobs",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1gXTlxumFPdgbcoJVSTMLqVMXcGPQQ113xfE4tx1nj_0/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1gXTlxumFPdgbcoJVSTMLqVMXcGPQQ113xfE4tx1nj_0/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -480,
+        -1160
+      ],
+      "id": "e4f2d6fa-aba9-4dde-80fc-92369141f9f9",
+      "name": "Google Sheets",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "EZSOJjmn9XvpwuwS",
+          "name": "Google Sheets account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Loop over input items and add a new field called 'myNewField' to the JSON of each one\nfor (const item of $input.all()) {\n  item.json.myNewField = 1;\n}\n\nreturn $input.all();"
+      },
+      "id": "bf8a9780-71e6-46ed-a9a1-b09c7eaf1ba9",
+      "name": "Prepare LLM Prompt",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [
+        -260,
+        -580
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1c1rHm6HWrl03Wusp-bXGZaLBxHG9Jurc5FwB9eXBwn8",
+          "mode": "list",
+          "cachedResultName": "resume",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1c1rHm6HWrl03Wusp-bXGZaLBxHG9Jurc5FwB9eXBwn8/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1c1rHm6HWrl03Wusp-bXGZaLBxHG9Jurc5FwB9eXBwn8/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [
+            "row_number"
+          ],
+          "schema": [
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -480,
+        -580
+      ],
+      "id": "e96c5ae5-70e3-4344-aa4c-4513b8633320",
+      "name": "Google Sheets1",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "EZSOJjmn9XvpwuwS",
+          "name": "Google Sheets account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=## 📊 Business Insight Report\n\n---\n\n### 1. 📝 Executive Summary\nThe analysis of business data reveals positive trends in revenue and customer engagement, alongside operational issues needing attention. Recommendations focus on strengthening key areas while addressing weaknesses.\n\n---\n\n### 2. 📌 Key Metrics & Trends\n\n#### 💰 Financial\n- **Revenue Growth**: 18% YoY increase, with a 35% surge in Q4.\n- **Cost-to-Revenue Ratio**: Improved from 0.75 → 0.65.\n\n#### 👥 Customer\n- **Customer Acquisition**: +22% new customers YoY.\n- **Customer Lifetime Value (CLV)**: Improved by 10%.\n\n#### 🌍 Regional Performance\n- **Northeast**: +25% sales growth\n- **West**: +20%\n- **South**: ❗ Only +2%, needs attention.\n\n---\n\n### 3. 🚨 Anomalies / Issues\n\n- **⚠️ Increased Churn Rate**: +5%, mainly due to service issues.\n- **⚠️ High Return Rates**: 12% return rate on new products.\n- **🟢 South Region Lagging**: Low growth (2%).\n\n---\n\n### 4. 🧠 Interpretation & Implications\nStrong revenue and acquisition indicate good strategies, but high churn and returns may damage long-term loyalty. South region underperformance could hint at market-fit or strategy gaps.\n\n---\n\n### 5. ✅ Recommended Actions\n\n- **📢 Marketing**: Launch South-focused campaigns.\n- **🧪 Product**: Start product quality assurance before launches.\n- **🧭 Strategy**: Upgrade customer service training.\n\n---\n\n### 6. 🗓️ Next Steps & Timeline\n\n#### Short-Term (Weeks 1–4)\n- **Week 1**: Gather churn feedback.\n- **Week 2**: Conduct South region research.\n- **Week 3**: Form quality assurance task force.\n- **Week 4**: Roll out customer service improvement plan.\n\n#### Long-Term (Months 1–6)\n- **Month 1**: South region campaign launch.\n- **Month 2**: Adjust product lines based on returns.\n- **Month 4**: Evaluate training effectiveness.\n- **Month 6**: Full performance review.\n\n---\n\n### 7. 📈 Optional Visuals (Can be added as images or chart URLs)\n- **Line Chart**: Revenue & customer acquisition trend (YoY).\n- **Bar Chart**: Churn vs Return rate by product.\n- **Heat Map**: Regional sales performance.\n\n---\n\n📬 *This report was auto-generated via n8n + LLM agent with Output Parser.*\n\n",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.9,
+      "position": [
+        180,
+        -580
+      ],
+      "id": "a41b8828-69b3-4f40-b768-f948be9c23b8",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        180,
+        -320
+      ],
+      "id": "eb60dbac-f435-4837-9475-713bfc976fbf",
+      "name": "OpenRouter Chat Model",
+      "credentials": {
+        "openRouterApi": {
+          "id": "eTY3hZSYTiXrjgVM",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": " KNOWN ISSUES TO AVOID\n\n1. ❌ *Too generic insights* → ✅ Always quantify with exact % or counts  \n2. ❌ *Random metrics order* → ✅ Group by business function  \n3. ❌ *No priority tags for issues* → ✅ Use severity indicators  \n4. ❌ *Vague action steps* → ✅ Include exact weeks and owners  \n5. ❌ *Weak executive summary* → ✅ Mention top 2 insights with numbers  \n6. ❌ *No visual guidance* → ✅ Recommend chart types (bar, heat map, line)  \n🎯 GOAL: Generate a clean, strategic, C-level report using the above format and memory. Return it as structured markdown or clean plain text."
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        320,
+        -300
+      ],
+      "id": "95e51ad0-b176-499e-8970-10dc855d10ed",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Inputs (you can set from a previous node)\nconst chart_type = $json.chart_type || \"bar\";          // bar, line, pie\nconst x_field = $json.x_axis || \"Region\";\nconst y_field = $json.y_axis || \"Sales\";\n\n// Prepare values\nconst rows = $input.all();\nconst grouped = {};\nfor (const row of rows) {\n  const x = row.json[x_field] || \"Unknown\";\n  const y = parseFloat(row.json[y_field]) || 0;\n  grouped[x] = (grouped[x] || 0) + y;\n}\n\nconst labels = Object.keys(grouped);\nconst data = labels.map(l => grouped[l]);\n\n// Chart config\nconst config = {\n  type: chart_type,\n  data: {\n    labels: labels,\n    datasets: [{\n      label: `${y_field} by ${x_field}`,\n      data: data,\n      backgroundColor: chart_type === \"pie\"\n        ? ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF']\n        : 'rgba(54, 162, 235, 0.7)',\n      borderColor: 'rgba(54, 162, 235, 1)',\n      borderWidth: 1\n    }]\n  },\n  options: {\n    responsive: true,\n    plugins: {\n      title: {\n        display: true,\n        text: `${chart_type.toUpperCase()}: ${y_field} by ${x_field}`,\n        font: { size: 18 }\n      },\n      legend: {\n        display: chart_type === \"pie\"\n      }\n    },\n    scales: chart_type !== \"pie\" ? {\n      y: {\n        beginAtZero: true,\n        title: { display: true, text: y_field }\n      },\n      x: {\n        title: { display: true, text: x_field }\n      }\n    } : undefined\n  }\n};\n\nconst chart_url = `https://quickchart.io/chart?c=${encodeURIComponent(JSON.stringify(config))}`;\n\nreturn [{\n  json: {\n    chart_url,\n    chart_type,\n    x_axis: x_field,\n    y_axis: y_field\n  }\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        140,
+        -80
+      ],
+      "id": "ac06ca94-18ee-4ffe-9ed6-06dc16031bcf",
+      "name": "Code"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.1,
+      "position": [
+        780,
+        -480
+      ],
+      "id": "b6a84e1b-3e23-48b6-998f-a2063831ff88",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "sendTo": "kiranashgowda007@gmail.com",
+        "subject": "=your report {{ $json.subject }}",
+        "message": "={{ $json.body }}\n{{ $json.chart_url}}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1100,
+        -460
+      ],
+      "id": "62606024-26e0-4339-b87e-e7ee02a4b393",
+      "name": "Gmail",
+      "webhookId": "078bb891-9e29-490c-8c39-32ce8825612a",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "lGXNyAXXXR1Z8I75",
+          "name": "Gmail account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Output Parser: Formats raw LLM text into clean markdown for email\nconst rawOutput = $json[\"llm_output\"]; // Replace with the actual field name from your LLM node\n\nconst formattedOutput = `\n## 📊 Business Insight Report\n\n---\n\n### 1. 📝 Executive Summary\n${rawOutput.match(/### 1\\. Executive Summary([\\s\\S]*?)### 2\\./)?.[1]?.trim() || \"Summary not found.\"}\n\n---\n\n### 2. 📌 Key Metrics & Trends\n${rawOutput.match(/### 2\\. Key Metrics & Trends([\\s\\S]*?)### 3\\./)?.[1]?.trim() || \"Metrics section missing.\"}\n\n---\n\n### 3. 🚨 Anomalies / Issues\n${rawOutput.match(/### 3\\. Anomalies \\/ Issues Found([\\s\\S]*?)### 4\\./)?.[1]?.trim() || \"Anomalies section missing.\"}\n\n---\n\n### 4. 🧠 Interpretation & Implications\n${rawOutput.match(/### 4\\. Interpretation & Implications([\\s\\S]*?)### 5\\./)?.[1]?.trim() || \"Interpretation section missing.\"}\n\n---\n\n### 5. ✅ Recommended Actions\n${rawOutput.match(/### 5\\. Recommended Actions([\\s\\S]*?)### 6\\./)?.[1]?.trim() || \"Recommendations missing.\"}\n\n---\n\n### 6. 🗓️ Next Steps & Timeline\n${rawOutput.match(/### 6\\. Next Steps & Timeline([\\s\\S]*?)### 7\\./)?.[1]?.trim() || \"Next steps not found.\"}\n\n---\n\n### 7. 📈 Optional Visuals / Charts\n${rawOutput.match(/### 7\\. Optional Visuals \\/ Charts([\\s\\S]*)/)?.[1]?.trim() || \"Charts section missing.\"}\n\n---\n\n📬 _Auto-generated by your LLM agent in n8n_\n`;\n\nreturn [\n  {\n    json: {\n      markdown_report: formattedOutput\n    }\n  }\n];\n"
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolCode",
+      "typeVersion": 1.2,
+      "position": [
+        440,
+        -320
+      ],
+      "id": "700b3c4d-25f5-4101-95c3-11e413202c11",
+      "name": "Code Tool"
+    },
+    {
+      "parameters": {
+        "jsCode": "return [\n  {\n    json: {\n      subject: \"📊 Monthly Business Insight Report\",\n      body: `\n        <html>\n          <body style=\"font-family: Arial, sans-serif; color: #333; line-height: 1.6;\">\n            <h2>📊 Business Insight Report</h2>\n            <hr />\n            <h3>1. 📝 Executive Summary</h3>\n            <p>The analysis of business data reveals positive trends in revenue and customer engagement...</p>\n            <hr />\n            <h3>2. 📌 Key Metrics & Trends</h3>\n            <h4>💰 Financial</h4>\n            <ul>\n              <li><strong>Revenue Growth:</strong> 18% YoY increase, 35% Q4 surge</li>\n              <li><strong>Cost-to-Revenue Ratio:</strong> 0.75 → 0.65</li>\n            </ul>\n            <h4>👥 Customer</h4>\n            <ul>\n              <li><strong>Customer Acquisition:</strong> +22% new customers</li>\n              <li><strong>CLV:</strong> +10%</li>\n            </ul>\n            <h4>🌍 Regional</h4>\n            <ul>\n              <li><strong>Northeast:</strong> +25%</li>\n              <li><strong>West:</strong> +20%</li>\n              <li><strong>South:</strong> ❗ Only +2%</li>\n            </ul>\n            <hr />\n            <h3>3. 🚨 Issues</h3>\n            <ul>\n              <li><strong>⚠️ Churn:</strong> +5% from service issues</li>\n              <li><strong>⚠️ Returns:</strong> 12% on new products</li>\n              <li><strong>🟢 South:</strong> Flat growth</li>\n            </ul>\n            <hr />\n            <h3>4. 🧠 Insights & 5. ✅ Actions</h3>\n            <ul>\n              <li><strong>📢 Target South marketing</strong></li>\n              <li><strong>🧪 Launch product QA</strong></li>\n              <li><strong>🧭 Improve service training</strong></li>\n            </ul>\n            <hr />\n            <h3>6. 🗓️ Timeline</h3>\n            <p><strong>Short-Term:</strong> Weeks 1–4 → Feedback, research, QA, training</p>\n            <p><strong>Long-Term:</strong> Month 1–6 → Launch, monitor, evaluate, revise</p>\n            <hr />\n            <h3>7. 📈 Visuals</h3>\n            <ul>\n              <li>📊 Line Chart: Revenue vs Customers</li>\n              <li>📊 Bar Chart: Churn vs Returns</li>\n              <li>📍 Heat Map: Sales by Region</li>\n            </ul>\n            <hr />\n            <p><i>This report was auto-generated using n8n + LLM Agent 🧠</i></p>\n          </body>\n        </html>\n      `\n    }\n  }\n]\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        540,
+        -580
+      ],
+      "id": "86857caf-bdd5-44e7-ab82-74cfa6df1154",
+      "name": "Code1"
+    }
+  ],
+  "pinData": {
+    "AI Agent": [
+      {
+        "json": {
+          "output": "## 📊 Business Insight Report\n\n---\n\n### 1. 📝 Executive Summary\nThe analysis of business data reveals positive trends in revenue and customer engagement, alongside operational issues needing attention. Recommendations focus on strengthening key areas while addressing weaknesses to ensure sustained growth and improved performance.\n\n---\n\n### 2. 📌 Key Metrics & Trends\n\n#### 💰 Financial\n- **Revenue Growth**: 18% YoY increase, with a remarkable 35% surge in Q4, indicating effective sales strategies and market demand.\n- **Cost-to-Revenue Ratio**: Improved from 0.75 to 0.65, reflecting enhanced operational efficiencies and cost management.\n\n#### 👥 Customer\n- **Customer Acquisition**: +22% increase in new customers YoY, suggesting successful marketing initiatives and promotional efforts.\n- **Customer Lifetime Value (CLV)**: Improved by 10%, indicating better customer retention and increased spending per customer.\n\n#### 🌍 Regional Performance\n- **Northeast**: +25% sales growth, demonstrating strong market performance.\n- **West**: +20% sales growth, indicating stability and effective outreach.\n- **South**: ❗ Only +2% growth, highlighting a critical area needing immediate attention.\n\n---\n\n### 3. 🚨 Anomalies / Issues\n\n- **⚠️ Increased Churn Rate**: +5% increase in churn primarily attributed to service-related issues, impacting customer retention.\n- **⚠️ High Return Rates**: 12% return rate on new products, indicating potential quality concerns or misalignment with customer expectations.\n- **🟢 South Region Lagging**: Minimal growth (2%); requires in-depth analysis of marketing strategies and customer engagement.\n\n---\n\n### 4. 🧠 Interpretation & Implications\nThe observed strong revenue growth and customer acquisition reflect effective marketing and operational strategies. However, the rising churn rate and high return rates pose significant risks to long-term customer loyalty and financial health. Additionally, the lackluster performance in the South region suggests possible gaps in market understanding or execution that need to be addressed promptly.\n\n---\n\n### 5. ✅ Recommended Actions\n\n- **📢 Marketing**: Develop and implement targeted marketing campaigns specifically for the South region to increase brand awareness and customer engagement.\n- **🧪 Product**: Initiate product quality assurance measures before launches to minimize return rates and enhance customer satisfaction.\n- **🧭 Strategy**: Revise customer service training programs to ensure high-quality support and reduce churn rates.\n\n---\n\n### 6. 🗓️ Next Steps & Timeline\n\n#### Short-Term (Weeks 1–4)\n- **Week 1**: Conduct surveys and gather feedback from churned customers to identify key service issues.\n- **Week 2**: Execute research in the South region to analyze consumer behavior and market needs.\n- **Week 3**: Establish a task force dedicated to assessing product quality processes and return reasons.\n- **Week 4**: Implement a customer service improvement plan focused on enhancing response times and quality of support.\n\n#### Long-Term (Months 1–6)\n- **Month 1**: Launch targeted marketing initiatives in the South region, with tracking and adjustments based on feedback.\n- **Month 2**: Adjust product offerings and inventory based on insights gained from return rates and customer feedback.\n- **Month 4**: Evaluate the effectiveness of the customer service training initiative through metrics like service rating and churn decrease.\n- **Month 6**: Conduct a comprehensive review of business performance, analyzing revenue metrics, customer feedback, and overall strategic effectiveness.\n\n---\n\n### 7. 📈 Optional Visuals (Can be added as images or chart URLs)\n- **Line Chart**: Visual representation of revenue and customer acquisition trends over the past year.\n- **Bar Chart**: Comparison of churn rates against return rates for various product lines.\n- **Heat Map**: Displaying regional sales performance to highlight strong and weak areas.\n\n---\n\n📬 *This report was auto-generated via n8n + LLM agent with Output Parser.*"
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Null Cleaner": {
+      "main": [
+        [
+          {
+            "node": "IF - Null Fixed?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF - Null Fixed?": {
+      "main": [
+        [
+          {
+            "node": "Duplicate Checker",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Duplicate Checker",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Duplicate Checker": {
+      "main": [
+        [
+          {
+            "node": "IF - Not Duplicate?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF - Not Duplicate?": {
+      "main": [
+        [
+          {
+            "node": "Type Fixer",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Type Fixer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Type Fixer": {
+      "main": [
+        [
+          {
+            "node": "IF - Types Fixed?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF - Types Fixed?": {
+      "main": [
+        [
+          {
+            "node": "Outlier Checker",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Outlier Checker",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Outlier Checker": {
+      "main": [
+        [
+          {
+            "node": "IF - Not Outlier?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF - Not Outlier?": {
+      "main": [
+        [
+          {
+            "node": "Final Step",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Final Step",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When clicking ‘Test workflow’": {
+      "main": [
+        [
+          {
+            "node": "Google Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Sheets": {
+      "main": [
+        [
+          {
+            "node": "Null Cleaner",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare LLM Prompt": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Final Step": {
+      "main": [
+        [
+          {
+            "node": "Google Sheets1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Sheets1": {
+      "main": [
+        [
+          {
+            "node": "Prepare LLM Prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Code1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Gmail",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code Tool": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code1": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "3df9aa25-3721-4659-8c64-46df04dbf89c",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "ef757a378f5abfd6eba85ca1fc6e09f57b6ba0468d2bec9894d5e910a442af5d"
+  },
+  "id": "Tmf1Qo6U82zMPX6w",
+  "tags": []
+}
